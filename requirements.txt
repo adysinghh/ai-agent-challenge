@@ -1,0 +1,7 @@
+pandas
+pdfplumber
+python-dotenv
+pytest
+google-generativeai
+groq
+openai
