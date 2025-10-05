@@ -45,14 +45,15 @@ These choices deliver **research-grade reliability** (simulate, verify, repair) 
 The agent runs a tight simulation-driven loop: **Plan-SIM** first samples a few lines from the input PDF to infer date patterns, header filters, and amount-cleaning rules. It then **generates k complete parser modules** and **verifies** each by running `parse(pdf)` and comparing against the gold CSV with `pandas.DataFrame.equals` (strict schema and values). If none pass, it computes a **row-level delta report**, triggers a **critic → patch** step guided by short **reflection rules**, writes the patch, and **retests**. This closed loop repeats up to **≤3** attempts or until tests pass.
 
 ```mermaid
-flowchart TB
-  A[Start] --> B["Plan-SIM: sample PDF and draft rules"]
-  B --> C["Generate k parser candidates"]
-  C --> D["Verify: parse() vs CSV equals"]
-  D -->|any pass| G[End]
-  D -->|all fail| E["Debug-SIM: row deltas"]
-  E --> F["Critic→Patch using reflections"]
+flowchart TD
+  A[Start] --> B[Plan-SIM]
+  B --> C[Generate k candidates]
+  C --> D[Verify: parse vs CSV (DataFrame.equals)]
+  D -->|any pass| G[End ✅]
+  D -->|fail & attempts < 3| E[Debug-SIM: row deltas]
+  E --> F[Critic→Patch (apply reflections)]
   F --> D
+  D -->|fail & attempts ≥ 3| G[End ❌]
 ```
 
 ---
