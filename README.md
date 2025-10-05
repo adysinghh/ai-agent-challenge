@@ -54,7 +54,6 @@ flowchart LR
   E --> F[Critic-Patch using reflections]
   F --> D
 
-```
 
 ---
 
