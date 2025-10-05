@@ -1,7 +1,17 @@
 
 # Bank-Statement Parser Agent - Incorporated recent reseach proven methods to enhance the agent.
 
-A small, **simulation-driven codegen agent** that writes a bank-specific PDF parser and verifies it **strictly** against a gold CSV using `pandas.DataFrame.equals`. It runs a tight loop: **plan → generate candidates → run tests → self-fix (≤3)**. 🔁
+A small, **simulation-driven codegen agent** that writes a bank-specific PDF parser and verifies it **strictly** against a gold CSV using `pandas.DataFrame.equals`. It follows a tight loop: **plan → generate candidates → run tests → self-fix (≤3)**. 🔁
+
+**Plan-SIM:** sample a few PDF lines to infer date patterns, header filters, and amount-cleaning rules. 
+**Generate (best-of-k):** produce multiple full parser modules. 
+**Score:** rank candidates with a strict verifier plus a simple heuristic (schema match, row count proximity, early cell overlap). 
+**Test:** run `parse(pdf)` and compare to the CSV with strict equality.
+**Debug-SIM:** if all fail, compute row-level deltas (got vs expected). 
+**Critic→Patch:** feed those deltas into a minimal-change repair prompt, write the patch, and retest. 
+**Reflection:** persist short “rules learned from failures” (e.g., drop per-page headers; `DD-MM-YYYY`; blanks→NaN) and inject them into later prompts. **Cap:** stop after ≤3 self-fix attempts or on first pass; artifacts (plan, prompts, scores, deltas, reflections) are saved under `trace/`.
+
+
 
 [We Dont Pass Any Code as the example for prasing - whole process is automated]
 
