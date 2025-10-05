@@ -49,11 +49,11 @@ flowchart TD
   A[Start] --> B[Plan-SIM]
   B --> C[Generate k candidates]
   C --> D[Verify: parse vs CSV (DataFrame.equals)]
-  D -->|any pass| G[End ✅]
+  D -->|any pass| G[End]
   D -->|fail & attempts < 3| E[Debug-SIM: row deltas]
   E --> F[Critic→Patch (apply reflections)]
   F --> D
-  D -->|fail & attempts ≥ 3| G[End ❌]
+  D -->|fail & attempts ≥ 3| G[End]
 ```
 
 ---
