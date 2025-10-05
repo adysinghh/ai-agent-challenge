@@ -68,7 +68,18 @@ We adapted **recent agent/code-generation research** into a pragmatic loop:
 
 ### Architecture
 
-The agent runs a tight simulation-driven loop: **Plan-SIM** first samples a few lines from the input PDF to infer date patterns, header filters, and amount-cleaning rules. It then **generates k complete parser modules** and **verifies** each by running `parse(pdf)` and comparing against the gold CSV with `pandas.DataFrame.equals` (strict schema and values). If none pass, it computes a **row-level delta report**, triggers a **critic → patch** step guided by short **reflection rules**, writes the patch, and **retests**. This closed loop repeats up to **≤3** attempts or until tests pass.
+Plan-SIM → Generate → Sanitize → Verify/Score → (pass) End / (fail) Debug-SIM → Critic→Patch → back to Verify  (≤3 attempts)
+
+• Plan-SIM → sample a few PDF lines (infer date regexes, header filters, amount-cleaning rules).
+• Generate (best-of-k) → produce k full parser modules.
+• Sanitize & guardrails → add required imports/signature, ban network/shell libs, make .str safe, strip code fences.
+• Verify & score → run parse(pdf) and compare to gold CSV with pandas.DataFrame.equals (strict schema & values);
+  also use a light heuristic (schema match, row-count gap, early-cell overlap) to rank candidates.
+• If any pass → write final parser and exit.
+• If all fail → Debug-SIM computes row-level deltas (got vs expected),
+  then Critic→Patch applies minimal fixes guided by short “reflection rules” (e.g., drop per-page headers; DD-MM-YYYY; blanks→NaN).
+• Loop back to Verify; stop after ≤3 self-fix attempts or on first pass.
+• Artifacts: trace/ (plan, scores, deltas, reflections, observe) and custom_parser/<bank>_parser.py (selected parser).
 
 ```mermaid
   flowchart TB
