@@ -9,7 +9,8 @@ A small, **simulation-driven codegen agent** that writes a bank-specific PDF par
 **Test:** run `parse(pdf)` and compare to the CSV with strict equality.
 **Debug-SIM:** if all fail, compute row-level deltas (got vs expected). 
 **Critic→Patch:** feed those deltas into a minimal-change repair prompt, write the patch, and retest. 
-**Reflection:** persist short “rules learned from failures” (e.g., drop per-page headers; `DD-MM-YYYY`; blanks→NaN) and inject them into later prompts. **Cap:** stop after ≤3 self-fix attempts or on first pass; artifacts (plan, prompts, scores, deltas, reflections) are saved under `trace/`.
+**Reflection:** persist short “rules learned from failures” (e.g., drop per-page headers; `DD-MM-YYYY`; blanks→NaN) and inject them into later prompts. 
+**Cap:** stop after ≤3 self-fix attempts or on first pass; artifacts (plan, prompts, scores, deltas, reflections) are saved under `trace/`.
 
 
 
