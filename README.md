@@ -49,7 +49,7 @@ flowchart LR
   A[Start] --> B[Plan-SIM (sample PDF, draft rules)]
   B --> C[Generate k candidates]
   C --> D[Verify each: parse → DataFrame.equals]
-  D -->|any pass| G[End ✅]
+  D -->|any pass| G[End]
   D -->|all fail| E[Debug-SIM: deltas]
   E --> F[Critic→Patch (use reflection rules)]
   F --> D
@@ -173,9 +173,3 @@ This exactly matches: **“T4 Test — assert parse() output equals the provided
 * **Self-Consistency** (*Wang et al., 2022*) — best-of-N sampling.
 * **Self-Refine** (*Madaan et al., 2023*) — iterative self-improvement from feedback.
 * **Reflexion** (*Shinn et al., 2023/2024*) — memories of failures guiding future attempts.
-
-*(Summaries provided for context; titles are widely known in the code-agent literature.)*
-
-```
-::contentReference[oaicite:0]{index=0}
-```
