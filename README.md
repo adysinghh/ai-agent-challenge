@@ -9,7 +9,6 @@ A small, **simulation-driven codegen agent** that writes a bank-specific PDF par
 ````markdown
 ## Quick start (install)
 
-```bash
 # 1) Python env (recommended)
 python -m venv .venv && source .venv/bin/activate
 
