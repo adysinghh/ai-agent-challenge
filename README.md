@@ -48,7 +48,7 @@ The agent runs a tight simulation-driven loop: **Plan-SIM** first samples a few 
 flowchart LR
   A[Start] --> B[Plan-SIM: sample PDF and draft rules]
   B --> C[Generate k parser candidates]
-  C --> D[Verify: parse() vs CSV equals]
+  C --> D[Verify: parse vs CSV equals]
   D -->|any pass| G[End]
   D -->|all fail| E[Debug-SIM: row deltas]
   E --> F[Critic-Patch using reflections]
