@@ -13,7 +13,7 @@ It follows a tight loop: **plan → generate candidates → run tests → self-f
 - **Critic→Patch:** feed those deltas into a minimal-change repair prompt, write the patch, and retest.  
 - **Reflection:** persist short “rules learned from failures” (e.g., drop per-page headers; `DD-MM-YYYY`; blanks→NaN) and inject them into later prompts.  
 - **Cap:** stop after ≤3 self-fix attempts or on first pass.
-- **Safefy** I also added a safety layer so that network/shell imports are **banned** in generated code.
+- **Safety & guardrails:** I also added a safety layer so that network/shell imports are **banned** in generated code.
 
 **Artifacts:** plan, prompts, scores, deltas, and reflections are saved under `trace/`.
 
