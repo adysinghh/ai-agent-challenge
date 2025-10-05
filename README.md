@@ -1,11 +1,11 @@
-````markdown
+
 # Bank-Statement Parser Agent
 
 A small, **simulation-driven codegen agent** that writes a bank-specific PDF parser and verifies it **strictly** against a gold CSV using `pandas.DataFrame.equals`. It runs a tight loop: **plan → generate candidates → run tests → self-fix (≤3)**. 🔁
 [We Dont Pass Any Code as the example for prasing - whole process is automated]
 
 ---
-
+````markdown
 ## Quick start (install)
 
 ```bash
