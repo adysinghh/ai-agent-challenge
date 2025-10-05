@@ -53,7 +53,7 @@ flowchart LR
   D -->|all fail| E[Debug-SIM: row deltas]
   E --> F[Critic-Patch using reflections]
   F --> D
-
+```
 
 ---
 
