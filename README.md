@@ -67,19 +67,18 @@ The agent runs a tight simulation-driven loop: **Plan-SIM** first samples a few 
    Set `LLM_PROVIDER` and the corresponding API key (see *Quick start*).
 
 3. **Generate & verify**
-
+   Correct run on dataset:
    ```bash
-   python agent.py \
-     --target icici \
-     --pdf "data/icici/icici sample.pdf" \
-     --csv "data/icici/result.csv" \
-     --best_of 3 --p 1 --d 2
+   python agent.py --target icici --pdf "data/icici/icici sample.pdf"  --csv data/icici/result.csv --best_of 3 --p 1 --d 2
    ```
-
+   Test on wrong PDF (to verify how the agent behaves when random input is given)
+   ```bash
+   python agent.py --target wrong --pdf "data/wrong/wrong sample.pdf"  --csv data/wrong/result.csv --best_of 3 --p 1 --d 2
+   ```
 4. **Inspect artifacts**
 
    * `custom_parser/<bank>_parser.py` — the selected parser
-   * `trace/` — prompts, plan, candidate scores, deltas, reflections
+   * `trace/` — prompts, plan, candidate scores, deltas, reflections (These are generated file which enhance our Agent)
 
 5. **Run tests (T4)**
 
@@ -88,7 +87,7 @@ The agent runs a tight simulation-driven loop: **Plan-SIM** first samples a few 
    ```
 
     ```bash
-    pytest -q --bank sbi --pdf-name "sbi.pdf"
+    pytest -q --bank icici --pdf-name "wrong_ex.pdf"
     ```
 
    The key assert is **strict**: `got.equals(exp)`.
