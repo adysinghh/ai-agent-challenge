@@ -13,6 +13,7 @@ It follows a tight loop: **plan → generate candidates → run tests → self-f
 - **Critic→Patch:** feed those deltas into a minimal-change repair prompt, write the patch, and retest.  
 - **Reflection:** persist short “rules learned from failures” (e.g., drop per-page headers; `DD-MM-YYYY`; blanks→NaN) and inject them into later prompts.  
 - **Cap:** stop after ≤3 self-fix attempts or on first pass.
+- **Safefy** I also added a safety layer so that network/shell imports are **banned** in generated code.
 
 **Artifacts:** plan, prompts, scores, deltas, and reflections are saved under `trace/`.
 
@@ -40,18 +41,28 @@ export LLM_PROVIDER=gemini   && export GOOGLE_API_KEY=...   # or
 
 ---
 
-## Research inspirations
+## Research inspirations (what we borrowed & how)
 
 We adapted **recent agent/code-generation research** into a pragmatic loop:
 
-* **CODESIM (2024)** — *Multi-Agent Code Generation and Problem Solving through Simulation-Driven Planning and Debugging.*
-  **What we took:** simulation-driven **planning**, **multi-candidate generation + scoring**, and **debugging via test feedback**.
-  **Our spin:** a **single-agent “CodeSIM-lite”**: Plan-SIM (sample the PDF), **best_of-k** modules, strict oracle test, then **critic→patch** (≤3).
-* **Self-Consistency / Best-of-N** (*Wang et al., 2022*) — sample multiple solutions and keep the best; we **generate k parser modules** and score them with a strict verifier.
-* **Self-Refine** (*Madaan et al., 2023*) & **Reflexion** (*Shinn et al., 2023/2024*) — iterative **self-feedback**; we persist short **reflection rules** from failures (e.g., “drop per-page headers; `DD-MM-YYYY`; blanks→NaN”) and feed them into later prompts.
-* **TDD-style repair** — failing tests produce a **delta report** that conditions the **critic→patch** prompt; we cap repair attempts to keep runtime predictable.
+- **CODESIM (2025)** — *Multi-Agent Code Generation and Problem Solving through Simulation-Driven Planning and Debugging.*  
+  **We took:** simulation-driven planning, multi-candidate generation + scoring, and debugging via test feedback.  
+  **Our spin:** a **single-agent “CodeSIM-lite”** loop — Plan-SIM (sample the PDF), **best-of-k** modules, strict oracle test, then **critic→patch** (≤3).  
+  [[arXiv]](https://arxiv.org/abs/2502.05664)
 
-These choices deliver **research-grade reliability** (simulate, verify, repair) without heavy orchestration.
+- **Self-Consistency / Best-of-N** (Wang et al., 2022) — sample multiple solutions and keep the best.  
+  **In our system:** we generate **k parser modules** and score them with a strict verifier.  
+  [[arXiv]](https://arxiv.org/abs/2203.11171)
+
+- **Self-Refine** (Madaan et al., 2023) & **Reflexion** (Shinn et al., 2023/2024) — iterative self-feedback/memory.  
+  **In our system:** we persist short **reflection rules** from failures (e.g., drop per-page headers; `DD-MM-YYYY`; blanks→NaN) and feed them into later prompts.  
+  [[Self-Refine arXiv]](https://arxiv.org/abs/2303.17651) • [[Reflexion arXiv]](https://arxiv.org/abs/2303.11366)
+
+- **TDD-style repair** — failing tests yield a **delta report** that conditions the **critic→patch** prompt; repair attempts are capped to keep runtime predictable.
+
+**Why this mix?** You get the reliability of research-backed patterns (simulate → verify → repair) without heavy orchestration — fast runs, clear logs, and deterministic checks.```
+::contentReference[oaicite:0]{index=0}
+
 
 ---
 
@@ -63,12 +74,14 @@ The agent runs a tight simulation-driven loop: **Plan-SIM** first samples a few 
   flowchart TB
   A[Start] --> B["Plan-SIM"]
   B --> C["Generate k parser candidates"]
-  C --> D["Verify: parse() vs CSV equals"]
+  C --> S["Sanitize & guardrails"]
+  S --> D["Verify: parse() vs CSV equals"]
   D -->|any pass| G[End]
   D -->|fail & attempts < 3| E["Debug-SIM: row deltas"]
   E --> F["Critic→Patch using reflections"]
-  F --> D
+  F --> S
   D -->|fail & attempts ≥ 3| G[End]
+
 ```
 
 ---
@@ -116,6 +129,17 @@ The agent runs a tight simulation-driven loop: **Plan-SIM** first samples a few 
 * **Strict verifier:** run `parse(pdf)` and check **exact schema & values** with `DataFrame.equals` (indices reset).
 * **Debug-SIM & self-fix:** compute row-level **deltas**, generate a minimal **patch**, write it, and **re-verify** (≤3).
 * **Reflections:** store short failure rules and inject them into subsequent prompts.
+
+---
+
+## Safety & guardrails (what protects the run)
+
+- **No network/shell code:** a sanitizer comments out banned imports/APIs (`subprocess`, `os.system`, `requests`, `urllib`, `httpx`, `socket`, `popen`).
+- **Signature & imports enforced:** strips code fences, injects `import pandas as pd`, `import pdfplumber`, `import re`, and guarantees `def parse(pdf_path: str) -> DataFrame` with the **exact** schema.
+- **Type-safe string ops:** auto-rewrites fragile `.str` calls on numeric series to `.astype(str).str...`, preventing runtime `AttributeError`.
+- **Prompt-level guardrails:** the generation/critic prompts **explicitly forbid** network/shell libraries and require `to_numeric(..., errors="coerce")`, `DD-MM-YYYY`, and index reset.
+- **Oracle verification, not heuristics:** acceptance only on **strict** `pandas.DataFrame.equals` (columns, types, values, index).
+- **Traceability:** all artifacts are logged to `trace/` (plan, candidate scores, deltas, reflections) for audit/debugging.
 
 ---
 
