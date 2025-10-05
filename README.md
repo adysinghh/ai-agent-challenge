@@ -40,19 +40,20 @@ These choices deliver **research-grade reliability** (simulate, verify, repair) 
 
 ---
 
-## One-paragraph architecture & diagram
+### Architecture
 
-The agent starts with **Plan-SIM**, sampling a few text lines from the input PDF to infer date patterns, header filters, and amount-cleaning rules. It then **generates k complete parser modules**, **verifies** each by running `parse(pdf)` and comparing to the gold CSV with `DataFrame.equals` (strict schema & values). If none pass, it computes a **row-level delta report**, prompts a **critic→patch** to minimally fix the current best parser, **writes the patch**, and **retests**. This **closed loop** repeats up to **≤3** times or until tests pass.
+The agent runs a tight simulation-driven loop: **Plan-SIM** first samples a few lines from the input PDF to infer date patterns, header filters, and amount-cleaning rules. It then **generates k complete parser modules** and **verifies** each by running `parse(pdf)` and comparing against the gold CSV with `pandas.DataFrame.equals` (strict schema and values). If none pass, it computes a **row-level delta report**, triggers a **critic → patch** step guided by short **reflection rules**, writes the patch, and **retests**. This closed loop repeats up to **≤3** attempts or until tests pass.
 
 ```mermaid
 flowchart LR
-  A[Start] --> B[Plan-SIM (sample PDF, draft rules)]
-  B --> C[Generate k candidates]
-  C --> D[Verify each: parse → DataFrame.equals]
+  A[Start] --> B[Plan-SIM: sample PDF and draft rules]
+  B --> C[Generate k parser candidates]
+  C --> D[Verify: parse() vs CSV equals]
   D -->|any pass| G[End]
-  D -->|all fail| E[Debug-SIM: deltas]
-  E --> F[Critic→Patch (use reflection rules)]
+  D -->|all fail| E[Debug-SIM: row deltas]
+  E --> F[Critic-Patch using reflections]
   F --> D
+
 ```
 
 ---
